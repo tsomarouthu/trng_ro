@@ -7,14 +7,19 @@ my work:
 2. Sampling: Add a fifo and sampling so that the design captures a trng_bit every nth microsecond. On the contrary, existing design packs first 8-bits on fast_clk, transmits data on uart_rate.
 i.e.,
 base design: fast capture followed by long silence
+
 [   160 ns   ] [......................... 1 ms ...................... ] [   160 ns   ] [......................... 1 ms ...................... ]
+
 [pack 8bits] [.........................skip trng bits...........] [pack 8bits] [.........................skip trng bits...........] 
+
 1ms - uart frame rate for 9600 baud
 
 updated: normalized capture and silence
+
 [  15 us ][  15 us ][  15 us ][  15 us ][  15 us ][  15 us ][  15 us ][  15 us ] ..... repeat
+
 [     b0   ][     b1   ][     b2   ][     b3   ][     b4   ][     b5   ][     b6   ][     b7   ] ..... repeat
-                                                                                                                          [ uart ] 
+
 15 us - This can be made to 12 us to match with uart frame rate 112500
 
 3. RO scaling per cluster : Parameterize the design to have different number of ROs per each cluster
