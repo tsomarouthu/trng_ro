@@ -2,6 +2,7 @@
 SystemVerilog implementation of an RO based TRNG targeted on Altera Cyclone-V FPGA
 
 Credits: Base design is in Verilog which was given to me as part of attendance to course IL_1333 by Elena Dubrova from KTH
+
 my work: 
 1. Throughput: update baud_rate to 115200 so the data streaming would improve from 9.6Kbps to 110Kbps
 2. Sampling: Add a fifo and sampling so that the design captures a trng_bit every nth microsecond. On the contrary, existing design packs first 8-bits on fast_clk, transmits data on uart_rate.
