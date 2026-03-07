@@ -30,6 +30,29 @@ module uart_tx #(
     output logic       tx_busy    // High while transmitting
 );
 
+`ifndef SYNTHESIS
+
+   initial begin
+    uart_tx = 1'b1; // UART idle is high
+    tx_busy = 1'b0;
+  end
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      tx_busy <= 1'b0;
+      uart_tx <= 1'b1;
+    end else begin
+      if (tx_start && !tx_busy) begin
+        tx_busy <= 1'b1;
+        $display("[%0t] UART_SIM: TX 0x%02h (%0d)", $time, data_in, data_in);
+      end else if (tx_busy) begin
+        tx_busy <= 1'b0;
+      end
+      // uart_tx stays idle-high in bypass
+    end
+  end
+`else
+
     localparam BAUD_DIV = CLK_FREQ / BAUD_RATE;
 
     // Determine number of data bits + parity bit
@@ -143,5 +166,7 @@ module uart_tx #(
             end
         end
     end
+
+`endif
 
 endmodule

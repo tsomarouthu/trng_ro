@@ -47,6 +47,10 @@ module trng_top #(
 
     logic ro_en_dbnc, start_dbnc;
 
+`ifndef SYNTHESIS
+    assign ro_en_dbnc = ro_en;
+    assign start_dbnc = start;
+`else
     switch_debouncer dbnc_u0 (
         .clk        (CLOCK_50),
         .rst_n      (rst_n),
@@ -60,6 +64,7 @@ module trng_top #(
         .switch_in  (start),
         .switch_out (start_dbnc)
     );
+`endif
 
     // ------------------------------------------------------------
     // TRNG core
@@ -81,21 +86,16 @@ module trng_top #(
     // ------------------------------------------------------------
     // TRNG Streamer (Sampler → Byte Assembler → FIFO → UART)
     // ------------------------------------------------------------
-    logic fifo_empty, fifo_full;
-
     trng_streamer #(
         .CLK_FREQ  (CLK_FREQ),
         .BAUD_RATE (BAUD_RATE),
-        .PARITY    (PARITY)
+        .PARITY    ("EVEN")
     ) streamer_inst (
         .clk        (CLOCK_50),
         .rst_n      (rst_n),
 
         .trng_raw   (trng_raw),
         .start      (start_dbnc),
-
-        .fifo_empty (fifo_empty),
-        .fifo_full  (fifo_full),
 
         .uart_tx    (UART_TX)
     );
