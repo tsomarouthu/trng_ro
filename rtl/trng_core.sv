@@ -28,6 +28,20 @@ module trng_core #(
     output logic trng_out
 );
 
+`ifndef SYNTHESIS
+
+  // Icarus-friendly constant function instead of param array
+  function automatic int inv_cnt(input int i);
+    case (i)
+      0: inv_cnt = 11;
+      1: inv_cnt = 13;
+      2: inv_cnt = 17;
+      3: inv_cnt = 19;
+      default: inv_cnt = 11;
+    endcase
+  endfunction
+
+`else
 
 	 localparam int INV_CNT[NUM_SRC] = '{	
                                         11,
@@ -37,6 +51,7 @@ module trng_core #(
                                     };
 
 
+`endif
 
 	logic [NUM_SRC-1:0] cluster_o;
 	logic mixed_entropy;
@@ -46,9 +61,14 @@ module trng_core #(
 	genvar i;
 	generate
 		for (i = 0; i < NUM_SRC; i++) begin : gen_cluster
+			localparam int STAGES_THIS = inv_cnt(i);
 			cluster #(
 				.NUM_RO(NUM_RO),
+`ifndef SYNTHESIS
+				.RO_STAGES(STAGES_THIS)
+`else
 				.RO_STAGES(INV_CNT[i])
+`endif
 				) u_cluster (
 					.ro_en (ro_en),
 					.clk   (clk),

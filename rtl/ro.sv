@@ -24,31 +24,45 @@ module ro #(
     output logic ro_out
 );
 
-   logic sync1;
+   logic sync_ro_raw;
 
-	// -----------------------------------------------------------
-   // SYNTHESIZABLE RO SV RTL
-   // ------------------------------------------------------------
+`ifndef SYNTHESIS
+
+    // -----------------------------------------------------------
+    // SIMULATION-ONLY MODEL (clock-synchronous random bit)
+    // - No inverter loop elaborated → no zero-time oscillation
+    // -----------------------------------------------------------
+    initial ro_out = 1'b0;
+
+    always_ff @(posedge clk) begin
+        if (!ro_en) ro_out <= 0;
+        else        ro_out <= $urandom_range(0,1);
+    end
+
+`else
+    // -----------------------------------------------------------
+    // SYNTHESIZABLE RO SV RTL
+    // ------------------------------------------------------------
 	(* keep = 1, dont_merge, noprune *) logic [STAGES-1:0] r;
 
-   // Power‑gated ring oscillator starts with an enabler gate
-   nand n_head (r[0], r[STAGES-1], ro_en);
+    // Power‑gated ring oscillator starts with an enabler gate
+    nand n_head (r[0], r[STAGES-1], ro_en);
 
-   genvar i;
-   generate
+    genvar i;
+    generate
        for (i = 0; i < STAGES-1; i++) begin : gen_inv
 			(* keep = 1, dont_merge *) not n_inv (r[i+1], r[i]);
        end
-   endgenerate
+    endgenerate
 
-
-    // Sampler
+    // Sampler    
     always_ff @(posedge clk) begin
-        sync1 <= r[STAGES-1];     // hardware path
+        sync_ro_raw <= r[STAGES-1];     // hardware path
     end
 
-	 // Ouput from RO
-    assign ro_out = sync1;
+	// Ouput from RO
+    assign ro_out = sync_ro_raw;
 
+`endif
 
 endmodule
